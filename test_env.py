@@ -1,27 +1,32 @@
 import gym
+import numpy as np
+import os
+from gym.wrappers import RecordVideo
 
-env = gym.make('FrozenLake-v1', render_mode='human')
-observation, info = env.reset()
-print(f"Начальное состояние: {observation}")
+# Проверяем наличие Q-таблицы
+if not os.path.exists("q_table.npy"):
+    print("Файл q_table.npy не найден. Обучите модель сначала.")
+    exit()
 
-step_count = 0
-max_steps = 100
+# Загружаем Q-таблицу
+Q = np.load("q_table.npy")
 
-print("\n--- Начало тестирования ---")
+# Создаём среду с записью видео
+video_folder = "videos"
+os.makedirs(video_folder, exist_ok=True)
 
-terminated = False
-truncated = False
+env = gym.make('FrozenLake-v1', render_mode='rgb_array')
+env = RecordVideo(env, video_folder=video_folder, name_prefix="frozenlake-qlearning")
 
-while not (terminated or truncated) and step_count < max_steps:
-    action = env.action_space.sample()
-    observation, reward, terminated, truncated, info = env.step(action)
-    step_count += 1
+# Тестирование агента
+state, _ = env.reset()
+done = False
 
-    print(f"Шаг {step_count}:")
-    print(f"  Действие: {action}")
-    print(f"  Состояние: {observation}")
-    print(f"  Награда: {reward}")
-    print(f"  Завершено: {terminated}, Прервано: {truncated}\n")
+while not done:
+    action = np.argmax(Q[state])
+    next_state, reward, terminated, truncated, _ = env.step(action)
+    done = terminated or truncated
+    state = next_state
 
 env.close()
-print("--- Тестирование завершено ---")
+print("Видео успешно записано в папку 'videos'")

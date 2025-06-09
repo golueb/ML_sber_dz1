@@ -1,5 +1,8 @@
 gym>=0.26
-numpy<1.24 # Чтобы избежать ошибок с bool8
+numpy<1.24
 matplotlib
+pandas
+jupyter
 ipykernel
 moviepy
+seaborn
